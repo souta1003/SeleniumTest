@@ -26,8 +26,9 @@ def DriverSet( WebName ):
 	DRIVER_PATH = os.path.join( BASE_PATH, "Webdriver" )
 
 	if WebName == "IE":
-		### 64bitのPCと64bitのDriverと64bitのIEを使うとバグるとかくそかよ
+		### 64bitのPCと64bitのDriverと64bitのIEを使うとバグるとか....
 		### https://non-programmer-lab.com/slenium-ie-connection-reset-error/ 左記サイト参照
+		### と思ったら、相性が悪かったみたい。
 		### IE用ドライバ設定
 		### 32bit
 		# IEDRIVER_PATH = os.path.join( DRIVER_PATH, "IEDriverServer_Win32_3.150.1" )
