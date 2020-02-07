@@ -1,9 +1,13 @@
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-
+# from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
+### pip install pillow 必要
+from PIL import ImageGrab
+from time import sleep
+
+import settings
 
 class MyTools():
 	def __init__(self, web_driver):
@@ -11,14 +15,14 @@ class MyTools():
 		self.scroll_height = 0
 
 	### type=text の入力
-	def input_text(self, name, value):
+	def input_text_by_name(self, name, value):
 		"""
 		type=text の入力
 		
 		Parameters
 		----------
 		name : char
-			name要素
+			name
 		value : char
 			入力文字
 		"""
@@ -27,14 +31,14 @@ class MyTools():
 		element.send_keys(value)
 
 	### type=number の入力
-	def input_number(self, name, value):
+	def input_number_by_name(self, name, value):
 		"""
 		type=number の入力
 		
 		Parameters
 		----------
 		name : char
-			name要素
+			name
 		value : char
 			入力文字
 		"""
@@ -43,14 +47,14 @@ class MyTools():
 		element.send_keys(value)
 
 	### type=password の入力
-	def input_password(self, name, value):
-				"""
+	def input_password_by_name(self, name, value):
+		"""
 		type=password の入力
 		
 		Parameters
 		----------
 		name : char
-			name要素
+			name
 		value : char
 			入力文字
 		"""
@@ -59,11 +63,11 @@ class MyTools():
 		element.send_keys(value)
 
 	### 半角カナの文字化け入力対策 汎用版
-	def input_by_name(self, name, value):
+	def input_script_by_name(self, name, value):
 		self.driver.execute_script("document.getElementsByName('" + name + "')[0].value = '" + value + "';")
 
 	### 半角カナの文字化け入力対策 汎用版
-	def input_by_id(self, id, value):
+	def input_script_by_id(self, id, value):
 		self.driver.execute_script("document.getElementById('" + id + "').value = '" + value + "';")
 
 	### 半角カナの文字化け入力対策 使うのは主にこっち
@@ -74,11 +78,11 @@ class MyTools():
 		Parameters
 		----------
 		name : char
-			入力欄のid要素
+			入力欄のid
 		value : char
 			入力したい半角カナ
 		"""
-		self.input_by_name(name, value)
+		self.input_script_by_name(name, value)
 
 	### 半角カナの文字化け入力対策 使うのは主にこっち
 	def input_text_kana_id(self, id, value):
@@ -88,23 +92,23 @@ class MyTools():
 		Parameters
 		----------
 		id : char
-			入力欄のid要素
+			入力欄のid
 		value : char
 			入力したい半角カナ
 		"""
-		self.input_by_id(id, value)
+		self.input_script_by_id(id, value)
 
 	### セレクトボックスの選択
-	def select_by_value(self, name, value):
+	def selectbox_value_by_name(self, name, value):
 		"""
 		セレクトボックスの選択
 		
 		Parameters
 		----------
 		name : char
-			セレクトボックスのname要素名
+			セレクトボックスのname
 		value : char
-			選択状態にしたいvalue要素名
+			選択状態にしたいvalue
 		"""
 		element = self.driver.find_element_by_name(name)
 		#セレクトタグの要素を指定してSelectクラスのインスタンスを作成
@@ -118,7 +122,7 @@ class MyTools():
 		Parameters
 		----------
 		id : char
-			クリックしたいid要素名
+			クリックしたいid
 		"""
 		element = self.driver.find_element_by_xpath(
 			"//input[@id='" + id + "'][@type='submit']")
@@ -131,7 +135,7 @@ class MyTools():
 		Parameters
 		----------
 		name : char
-			クリックしたいname要素名
+			クリックしたいname
 		"""
 		self.driver.find_element_by_name( name ).click()
 
@@ -142,7 +146,7 @@ class MyTools():
 		Parameters
 		----------
 		id : char
-			クリックしたいid要素名
+			クリックしたいid
 		"""
 		self.driver.find_element_by_id( id ).click()
 
@@ -153,18 +157,63 @@ class MyTools():
 		Parameters
 		----------
 		class : char
-			クリックしたいclass要素名
+			クリックしたいclass
 		"""
 		self.driver.find_element_by_class_name( classname ).click()
 
-	def click_img(self, alt):
+	def select_classes(self, classname, index):
 		"""
-		img要素のボタンクリック
+		選択状態にする(class)
+		
+		Parameters
+		----------
+		class : char
+			選択状態にしたいclass
+		index : int
+			選択状態にしたいクラスの添字
+		"""
+		self.driver.find_elements_by_class_name( classname )[index].click()
+
+	def click_img_by_alt(self, alt):
+		"""
+		imgのボタンクリック
 		
 		Parameters
 		----------
 		alt : char
-			クリックしたいalt要素名
+			クリックしたいalt
 		"""
 		self.driver.find_element_by_xpath("//img[@alt='" + alt + "']").click()
 
+	def screenshotOfDisplay(self, filename = 'screenshotOfDisplay.png'):
+		"""
+		ディスプレイ全体のスクリーンショット
+		
+		Parameters
+		----------
+		filename : char
+			任意のファイル名。
+			設定しない場合、screenshotOfDisplay.png というファイル名となる。
+			ディレクトリは現在決め打ち(settings.py参照)
+		"""
+		# makeDirectoryIfNotExist(screenshotDirectoryName)
+
+		sleep(2)
+		path = settings.FILE_PATH + "\\" + filename
+		print(path)
+		img = ImageGrab.grab()
+		img.save(path)
+
+	def scroll_to(self, pitch):
+		self.scroll_height = self.scroll_height + pitch
+		self.driver.execute_script("window.scrollTo(0," + str(self.scroll_height) + ")")
+
+	def scroll_to_bottom(self):
+		"""
+		一番下までスクロール
+		
+		Parameters
+		----------
+		なし
+		"""
+		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
