@@ -1,3 +1,6 @@
+from time import sleep
+import os
+
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.common.by import By
@@ -5,9 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 ### pip install pillow 必要
 from PIL import ImageGrab
-from time import sleep
+from openpyxl import Workbook, drawing
 
 import settings
+
 
 class MyTools():
 	def __init__(self, web_driver):
@@ -185,6 +189,42 @@ class MyTools():
 		"""
 		self.driver.find_element_by_xpath("//img[@alt='" + alt + "']").click()
 
+	def screenshot( self, filename ):
+		"""
+		アクティブな画面のスクリーンショットを取る
+		ファイルの保存場所は、settings.pyのFILE_PATH 参照。
+		同ファイル名の場合は上書きされます。
+
+		Parameters
+		----------
+		filename : char
+			任意のpngファイル名
+		"""
+		filename = settings.FILE_PATH + "\\" + filename
+		self.driver.get_screenshot_as_file( filename )
+
+	def paste_excel( self, filename, excelname, pastecell ):
+		"""
+		スクリーンショットした写真を新規Excelに貼り付ける(試作中)
+		
+		Parameters
+		----------
+		filename : char
+			pngファイル名 例)test.png
+		excelname : char
+			新規で保存するexcelファイル名 例)test.xlsx
+		pastecell : char
+			写真を貼り付けるセルの位置 例)A1
+		"""
+		wb = Workbook()
+		ws = wb.worksheets[0]
+		self.screenshot( filename )
+		filename = settings.FILE_PATH + "\\" + filename
+		img = drawing.image.Image( filename )
+		ws.add_image( img, pastecell )
+		excel_fullpath = os.path.join(settings.FILE_PATH, excelname )
+		wb.save(excel_fullpath)
+
 	def screenshotOfDisplay(self, filename = 'screenshotOfDisplay.png'):
 		"""
 		ディスプレイ全体のスクリーンショット
@@ -192,7 +232,7 @@ class MyTools():
 		Parameters
 		----------
 		filename : char
-			任意のファイル名。
+			任意のpngファイル名。
 			設定しない場合、screenshotOfDisplay.png というファイル名となる。
 			ディレクトリは現在決め打ち(settings.py参照)
 		"""
@@ -204,7 +244,16 @@ class MyTools():
 		img = ImageGrab.grab()
 		img.save(path)
 
-	def scroll_to(self, pitch):
+	def scroll_to(self, pitch=60):
+		"""
+		指定ピッチ数分下にスクロールする
+		デフォルトは60
+		
+		Parameters
+		----------
+		pitch : int
+			スクロールpitch数
+		"""
 		self.scroll_height = self.scroll_height + pitch
 		self.driver.execute_script("window.scrollTo(0," + str(self.scroll_height) + ")")
 
@@ -217,3 +266,26 @@ class MyTools():
 		なし
 		"""
 		self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+	def scrolling_screenshot( self, filepath, scroll_pitch=600 ):
+		"""
+		スクロール必須画面のスクリーンショット
+		
+		Parameters
+		----------
+		filepath : char
+			スクリーンショットを格納するディレクトリパス
+		scroll_pitch : int
+			スクロールするサイズ(Pixcel)
+			デフォルトは600
+		"""
+		page_height = self.driver.execute_script('return document.body.scrollHeight')
+
+		mod = page_height % scroll_pitch
+		counts = page_height // scroll_pitch
+		if mod != 0:
+			counts = counts + 1
+
+		for count in range(counts):
+			self.driver.save_screenshot( os.path.join( filepath, "screenshot_{}.png".format(count)) )
+			self.scroll_to(scroll_pitch)
